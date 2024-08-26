@@ -1,11 +1,17 @@
-﻿namespace Calculator.Parser;
+﻿using System.Text.RegularExpressions;
 
-public class InputParser : IInputParser
+namespace Calculator.Parser;
+
+
+public partial class InputParser : IInputParser
 {
     public const int INVALID_NUMBER = 0;
     private const string DELIMITER_IDENTIFIER = "//";
     
-    private List<string> _delimeters = new List<string>
+    [GeneratedRegex(@"\[(.*?)\]")]
+    private static partial Regex MultipartDelimiter();
+    
+    private readonly List<string> _delimiters = new List<string>
     {
         ",",
         "\n"
@@ -62,7 +68,7 @@ public class InputParser : IInputParser
     private IEnumerable<int> ExtractNumbers(
         string input)
     {
-        string[] parts = input.Split(_delimeters.ToArray(), StringSplitOptions.None);
+        var parts = input.Split(_delimiters.ToArray(), StringSplitOptions.None);
         
         return parts.Select(p=> 
                 int.TryParse(p, out int number) ? 
@@ -73,7 +79,7 @@ public class InputParser : IInputParser
     private Operation ExtractOperation(
         string input)
     {
-        return _delimeters.Any(input.Contains) ? Operation.Add : Operation.None;
+        return _delimiters.Any(input.Contains) ? Operation.Add : Operation.None;
     }
 
     private void ValidateNumbers(
@@ -109,8 +115,7 @@ public class InputParser : IInputParser
                 throw new ArgumentException($"Invalid format for custom delimiter: {input}");
             }
             
-            int delimiterDefinitionStartIndex = input.IndexOf('[');
-            int delimiterDefinitionEndIndex = input.IndexOf(']');
+            int delimiterDefinitionEndIndex = input.LastIndexOf(']');
             
             //special case if custom delimiter contains end of delimiter definition (\n)
             if (delimiterEndIndex < delimiterDefinitionEndIndex)
@@ -123,16 +128,23 @@ public class InputParser : IInputParser
                 }
             }
 
+            int delimiterDefinitionStartIndex = input.IndexOf('[');
+            
             //check if multi char delimiter present 
             if (delimiterDefinitionStartIndex != INVALID_INDEX &&
                 delimiterDefinitionEndIndex != INVALID_INDEX)
             {
-                // Extract custom delimiter and the remaining string
-                string delimiter = input.Substring(
-                    delimiterDefinitionStartIndex + 1,
-                    delimiterDefinitionEndIndex - delimiterDefinitionStartIndex - 1);
+                string delimiterPart = input.Substring(
+                    DELIMITER_IDENTIFIER.Length, 
+                    delimiterEndIndex - DELIMITER_IDENTIFIER.Length);
                 
-                _delimeters.Add(delimiter);
+                // Use a regular expression to extract all delimiters within []
+                var delimiterMatches = MultipartDelimiter().Matches(delimiterPart);
+                
+                var customDelimiters = delimiterMatches
+                    .Select(m => m.Groups[1].Value);
+                
+                _delimiters.AddRange(customDelimiters);
 
             }
             else
@@ -147,7 +159,7 @@ public class InputParser : IInputParser
                 }
 
                 //requirement is stated single char delimiter, taking the first char 
-                _delimeters.Add(delimiter.Substring(0,1));
+                _delimiters.Add(delimiter.Substring(0,1));
             }
 
             //compensate for delimiter identifier ending character

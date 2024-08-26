@@ -134,4 +134,20 @@ public class ParserTests
         Assert.That(result.Values, Is.Not.Null);
         Assert.That(result.Values.Count(), Is.EqualTo(3));
     }
+    
+    [TestCase("//[***][!!]\n1***2!!3,4")]
+    [TestCase("//[!!][!1!]\n1!1!2!!3\n4")]
+    [TestCase("//[k9][!!]\n1k92!!,3")]
+    [TestCase("//[1\n1][!!]\n11\n12!!3\n")]
+    public async Task ParsingWithMultipleCustomMultiLengthDelimiters(string input)
+    {
+        var parser = new InputParser();
+
+        var result = await parser.ParseInput(input);
+        
+        Assert.That(result, Is.Not.Null);
+        Assert.IsTrue(result.Operation.GetType() == typeof(Operation));
+        Assert.That(result.Values, Is.Not.Null);
+        Assert.That(result.Values.Count(), Is.EqualTo(4));
+    }
 }
