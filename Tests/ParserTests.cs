@@ -78,4 +78,25 @@ public class ParserTests
         
         Assert.That(ex.Message, Does.Contain("-3,-4"));
     }
+    
+    /// <summary>
+    /// numbers above 1000 considered invalid and converted to 0
+    /// </summary>
+    /// <param name="input"></param>
+    [TestCase("1,1001,2")]
+    [TestCase("1\n5000\n2")]
+
+    public async Task ParsingWithInvalidNumbers(string input)
+    {
+        var parser = new InputParser();
+
+        var result = await parser.ParseInput(input);
+        
+        Assert.That(result, Is.Not.Null);
+        Assert.IsTrue(result.Operation.GetType() == typeof(Operation));
+        Assert.That(result.Values, Is.Not.Null);
+        Assert.That(result.Values.Count(), Is.EqualTo(3));
+        
+        Assert.That(result.Values.ElementAt(1), Is.EqualTo(InputParser.INVALID_NUMBER));
+    }
 }

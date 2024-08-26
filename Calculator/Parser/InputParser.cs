@@ -2,6 +2,8 @@
 
 public class InputParser : IInputParser
 {
+    public const int INVALID_NUMBER = 0;
+    
     private static readonly IEnumerable<char> _delimeters = new[]
     {
         ',',
@@ -23,7 +25,7 @@ public class InputParser : IInputParser
             return await Task.FromResult(
                 new CalcParam(
                 operation: Operation.Add,
-                values: new int[] { 0, 0 }));
+                values: new int[] { INVALID_NUMBER, INVALID_NUMBER }));
         }
 
         //replace char from command line with the actual \n char
@@ -60,7 +62,9 @@ public class InputParser : IInputParser
         string[] parts = input.Split(_delimeters.ToArray());
         
         return parts.Select(p=> 
-                int.TryParse(p, out int number) ? number : 0);
+                int.TryParse(p, out int number) ? 
+                    number <= 1000 ? number : INVALID_NUMBER
+                    : INVALID_NUMBER);
     }
 
     private Operation ExtractOperation(
