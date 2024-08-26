@@ -49,7 +49,8 @@ public class CalculatorService
             
             int result = await calculatorOperation.Operate(calcParam.Values);
             
-            Console.WriteLine($"Result: {result}");
+            //a bit more correct would be to call something like GetOperationSignature to replace "+" sign  
+            Console.WriteLine($"Result: {string.Join("+", calcParam.Values)} = {result}");
         }
         catch (Exception ex)
         {
