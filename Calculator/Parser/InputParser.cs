@@ -2,6 +2,11 @@
 
 public class InputParser : IInputParser
 {
+    private static readonly IEnumerable<char> _delimeters = new[]
+    {
+        ',',
+        '\n'
+    };
     /// <summary>
     /// Parse string with following rules
     /// always return at least 2 element values collection
@@ -21,6 +26,10 @@ public class InputParser : IInputParser
                 values: new int[] { 0, 0 }));
         }
 
+        //replace char from command line with the actual \n char
+        //there is nothing to replace if the actual parameter was constructed in the code 
+        input = input.Replace("\\n", "\n");    
+        
         var values = ExtractNumbers(input);
         var operation = ExtractOperation(input);
         
@@ -45,7 +54,7 @@ public class InputParser : IInputParser
     private IEnumerable<int> ExtractNumbers(
         string input)
     {
-        string[] parts = input.Split(',', '\r');
+        string[] parts = input.Split(_delimeters.ToArray());
         
         return parts.Select(p=> 
                 int.TryParse(p, out int number) ? number : 0);
@@ -54,6 +63,6 @@ public class InputParser : IInputParser
     private Operation ExtractOperation(
         string input)
     {
-        return input.Contains(',') ? Operation.Add : Operation.None;
+        return _delimeters.Any(input.Contains) ? Operation.Add : Operation.None;
     }
 }
