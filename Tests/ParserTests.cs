@@ -99,4 +99,22 @@ public class ParserTests
         
         Assert.That(result.Values.ElementAt(1), Is.EqualTo(InputParser.INVALID_NUMBER));
     }
+    
+    
+    [TestCase("//#\n1#2#3")]
+    [TestCase("//#\n1\n2#3")]
+    [TestCase("//#\n1#2#")]
+    [TestCase("//#\n1,2#3")]
+    [TestCase("//#\n1##3")]
+    public async Task ParsingWithCustomDelimiter(string input)
+    {
+        var parser = new InputParser();
+
+        var result = await parser.ParseInput(input);
+        
+        Assert.That(result, Is.Not.Null);
+        Assert.IsTrue(result.Operation.GetType() == typeof(Operation));
+        Assert.That(result.Values, Is.Not.Null);
+        Assert.That(result.Values.Count(), Is.EqualTo(3));
+    }
 }

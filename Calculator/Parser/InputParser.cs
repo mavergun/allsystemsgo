@@ -3,8 +3,9 @@
 public class InputParser : IInputParser
 {
     public const int INVALID_NUMBER = 0;
+    private const string DELIMITER_IDENTIFIER = "//";
     
-    private static readonly IEnumerable<char> _delimeters = new[]
+    private List<char> _delimeters = new List<char>
     {
         ',',
         '\n'
@@ -30,7 +31,9 @@ public class InputParser : IInputParser
 
         //replace char from command line with the actual \n char
         //there is nothing to replace if the actual parameter was constructed in the code 
-        input = input.Replace("\\n", "\n");    
+        input = input.Replace("\\n", "\n");  
+        
+        input = ExtractCustomDelimiter(input);
         
         var values = ExtractNumbers(input);
 
@@ -83,5 +86,40 @@ public class InputParser : IInputParser
         {
             throw new ArgumentException($"Following numbers are not allowed:{string.Join(",", negativeNumbers)}");
         }
+    }
+
+    /// <summary>
+    /// Detect custom delimiter
+    /// </summary>
+    /// <param name="input"></param>
+    /// <returns>Input string without definition of custom delimiter</returns>
+    private string ExtractCustomDelimiter(
+        string input)
+    {
+        // Check for custom delimiter format
+        if (input.StartsWith(DELIMITER_IDENTIFIER))
+        {
+            // Extract custom delimiter and the remaining string
+            int delimiterEndIndex = input.IndexOf('\n');
+            
+            string delimiter = input.Substring(
+                DELIMITER_IDENTIFIER.Length, 
+                delimiterEndIndex - DELIMITER_IDENTIFIER.Length);
+
+            if (string.IsNullOrWhiteSpace(delimiter))
+            {
+                throw new ArgumentException("Custom delimiter cannot be null or empty");
+            }
+            
+            //requirement is stated single char delimiter, taking the first char 
+            char addDelimiter = delimiter[0];
+            
+            _delimeters.Add(addDelimiter);
+
+            //compensate for delimiter identifier ending character
+            return input.Substring(delimiterEndIndex + 1);
+        }
+
+        return input;
     }
 }
