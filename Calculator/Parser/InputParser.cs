@@ -5,10 +5,10 @@ public class InputParser : IInputParser
     public const int INVALID_NUMBER = 0;
     private const string DELIMITER_IDENTIFIER = "//";
     
-    private List<char> _delimeters = new List<char>
+    private List<string> _delimeters = new List<string>
     {
-        ',',
-        '\n'
+        ",",
+        "\n"
     };
     /// <summary>
     /// Parse string with following rules
@@ -62,7 +62,7 @@ public class InputParser : IInputParser
     private IEnumerable<int> ExtractNumbers(
         string input)
     {
-        string[] parts = input.Split(_delimeters.ToArray());
+        string[] parts = input.Split(_delimeters.ToArray(), StringSplitOptions.None);
         
         return parts.Select(p=> 
                 int.TryParse(p, out int number) ? 
@@ -96,25 +96,59 @@ public class InputParser : IInputParser
     private string ExtractCustomDelimiter(
         string input)
     {
+        const int INVALID_INDEX = -1;
+        
         // Check for custom delimiter format
         if (input.StartsWith(DELIMITER_IDENTIFIER))
         {
             // Extract custom delimiter and the remaining string
             int delimiterEndIndex = input.IndexOf('\n');
             
-            string delimiter = input.Substring(
-                DELIMITER_IDENTIFIER.Length, 
-                delimiterEndIndex - DELIMITER_IDENTIFIER.Length);
-
-            if (string.IsNullOrWhiteSpace(delimiter))
+            if (delimiterEndIndex == INVALID_INDEX)
             {
-                throw new ArgumentException("Custom delimiter cannot be null or empty");
+                throw new ArgumentException($"Invalid format for custom delimiter: {input}");
             }
             
-            //requirement is stated single char delimiter, taking the first char 
-            char addDelimiter = delimiter[0];
+            int delimiterDefinitionStartIndex = input.IndexOf('[');
+            int delimiterDefinitionEndIndex = input.IndexOf(']');
             
-            _delimeters.Add(addDelimiter);
+            //special case if custom delimiter contains end of delimiter definition (\n)
+            if (delimiterEndIndex < delimiterDefinitionEndIndex)
+            {
+                delimiterEndIndex =   input.IndexOf('\n', delimiterDefinitionEndIndex);
+                
+                if (delimiterEndIndex == INVALID_INDEX)
+                {
+                    throw new ArgumentException($"Invalid format for custom delimiter: {input}");
+                }
+            }
+
+            //check if multi char delimiter present 
+            if (delimiterDefinitionStartIndex != INVALID_INDEX &&
+                delimiterDefinitionEndIndex != INVALID_INDEX)
+            {
+                // Extract custom delimiter and the remaining string
+                string delimiter = input.Substring(
+                    delimiterDefinitionStartIndex + 1,
+                    delimiterDefinitionEndIndex - delimiterDefinitionStartIndex - 1);
+                
+                _delimeters.Add(delimiter);
+
+            }
+            else
+            {
+                string delimiter = input.Substring(
+                    DELIMITER_IDENTIFIER.Length,
+                    delimiterEndIndex - DELIMITER_IDENTIFIER.Length);
+
+                if (string.IsNullOrWhiteSpace(delimiter))
+                {
+                    throw new ArgumentException("Custom delimiter cannot be null or empty");
+                }
+
+                //requirement is stated single char delimiter, taking the first char 
+                _delimeters.Add(delimiter.Substring(0,1));
+            }
 
             //compensate for delimiter identifier ending character
             return input.Substring(delimiterEndIndex + 1);
