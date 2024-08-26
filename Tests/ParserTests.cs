@@ -67,4 +67,15 @@ public class ParserTests
         Assert.That(result.Values, Is.Not.Null);
         Assert.That(result.Values.Count(), Is.EqualTo(3));
     }
+    
+    [TestCase("1\n-3\n3,-4")]
+    public async Task ParseNegativeNumbers_ShouldThrowException(string input)
+    {
+        var parser = new InputParser();
+        
+        // validate negative numbers 
+        var ex = Assert.ThrowsAsync<ArgumentException>(async () => await parser.ParseInput(input));
+        
+        Assert.That(ex.Message, Does.Contain("-3,-4"));
+    }
 }

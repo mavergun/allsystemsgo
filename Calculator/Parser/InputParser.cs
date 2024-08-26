@@ -31,6 +31,9 @@ public class InputParser : IInputParser
         input = input.Replace("\\n", "\n");    
         
         var values = ExtractNumbers(input);
+
+        ValidateNumbers(values);
+        
         var operation = ExtractOperation(input);
         
         //handling special case with one number and no delimiter
@@ -64,5 +67,17 @@ public class InputParser : IInputParser
         string input)
     {
         return _delimeters.Any(input.Contains) ? Operation.Add : Operation.None;
+    }
+
+    private void ValidateNumbers(
+        IEnumerable<int> numbers)
+    {
+        //validate against negative numbers 
+        var negativeNumbers = numbers.Where(n => n < 0);
+
+        if (negativeNumbers.Any())
+        {
+            throw new ArgumentException($"Following numbers are not allowed:{string.Join(",", negativeNumbers)}");
+        }
     }
 }
