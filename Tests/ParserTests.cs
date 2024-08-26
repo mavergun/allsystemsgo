@@ -34,6 +34,11 @@ public class ParserTests
     [TestCase("tut,2")]
     [TestCase(",")]
     [TestCase("2")]
+    [TestCase("1,2,")]
+    [TestCase("1,2,3")]
+    [TestCase("1,tut,3")]
+    [TestCase("1,tut,tut")]
+    [TestCase("1,2,3,")]
     public async Task ParsingZero(string input)
     {
         var parser = new InputParser();
@@ -44,20 +49,5 @@ public class ParserTests
         Assert.IsTrue(result.Operation.GetType() == typeof(Operation));
         Assert.That(result.Values, Is.Not.Null);
         Assert.That(result.Values.Count(), Is.GreaterThanOrEqualTo(2));
-    }
-    
-    /// <summary>
-    /// Tests for invalid number of entries 
-    /// </summary>
-    /// <param name="input"></param>
-    [TestCase("1,2,")]
-    public void InvalidParameter(string input)
-    {
-        var parser = new InputParser();
-
-        var ex = Assert.ThrowsAsync<ArgumentException>(async () => await parser.ParseInput(input));
-        
-        Assert.That(ex, Is.Not.Null);
-        Assert.That(ex.Message, Is.EqualTo("A maximum of two numbers is allowed."));
     }
 }

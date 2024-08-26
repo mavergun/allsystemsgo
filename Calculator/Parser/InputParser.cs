@@ -47,11 +47,6 @@ public class InputParser : IInputParser
     {
         string[] parts = input.Split(',', '\r');
         
-        if (parts.Length > 2)
-        {
-            throw new ArgumentException("A maximum of two numbers is allowed.");
-        }
-
         return parts.Select(p=> 
                 int.TryParse(p, out int number) ? number : 0);
     }

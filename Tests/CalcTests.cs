@@ -27,6 +27,8 @@ public class CalcTests
         {
             yield return new TestCaseData(new CalcParam(new []{1,2}, Operation.Add));
             yield return new TestCaseData(new CalcParam(new []{1,-3}, Operation.Add));
+            yield return new TestCaseData(new CalcParam(new []{1,2,3}, Operation.Add));
+            yield return new TestCaseData(new CalcParam(new []{1,2,3,}, Operation.Add));
         }
     }
     
