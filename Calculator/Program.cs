@@ -36,25 +36,39 @@ public class CalculatorService
 
     public async Task Run()
     {
-        Console.WriteLine("Enter numbers for calculation:");
-        string input = Console.ReadLine(); 
-        
-        try
+        // Set up to handle Ctrl+C
+        Console.CancelKeyPress += (sender, consoleEvent) =>
         {
-            //if the requirement is to throw unhandled exception the next line needs to moved outside try\catch block 
-            var calcParam = await _inputParser.ParseInput(input);
+            consoleEvent.Cancel = true;
             
-            //get processor
-            var calculatorOperation =  _operationFactory.GetOperation(calcParam.Operation);
+            Console.WriteLine("\nExiting per user request");
             
-            int result = await calculatorOperation.Operate(calcParam.Values);
-            
-            //a bit more correct would be to call something like GetOperationSignature to replace "+" sign  
-            Console.WriteLine($"Result: {string.Join("+", calcParam.Values)} = {result}");
-        }
-        catch (Exception ex)
+            Environment.Exit(0);
+        };
+
+        //while ctrl-C is not pressed 
+        while (true)
         {
-            Console.WriteLine(ex);
+            Console.WriteLine("Enter numbers for calculation:");
+            string input = Console.ReadLine();
+
+            try
+            {
+                //if the requirement is to throw unhandled exception the next line needs to moved outside try\catch block 
+                var calcParam = await _inputParser.ParseInput(input);
+
+                //get processor
+                var calculatorOperation = _operationFactory.GetOperation(calcParam.Operation);
+
+                int result = await calculatorOperation.Operate(calcParam.Values);
+
+                //a bit more correct would be to call something like GetOperationSignature to replace "+" sign  
+                Console.WriteLine($"Result: {string.Join("+", calcParam.Values)} = {result}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
         }
     }
 }
